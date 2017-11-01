@@ -4,21 +4,23 @@ import json
 
 class Reader:
 
-    RAW_DIR = '/home/vedanshu/WebstormProjects/getter'
     OUTPUT_DIR = '/home/vedanshu/PycharmProjects/cssai-main/data'
     DICT_DIR = '/home/vedanshu/PycharmProjects/cssai-main/dict01.json'
     dict = {}
     tags = []
     style_names = []
     style_values = []
+    input_path = ''
+    input_file_name = ''
 
-    def __init__(self):
+    def __init__(self, input_path, input_file_name):
         self.load_dict()
         self.page_data = {
             'map': {},
             'data': {}
         }
-        pass
+        self.input_path = input_path
+        self.input_file_name = input_file_name
 
     def load_dict(self):
         with open(self.DICT_DIR) as dict_file:
@@ -27,15 +29,27 @@ class Reader:
             self.style_names = self.dict['style_names']
             self.style_values = self.dict['style_values']
 
-    def start_processing(self):
-        for folder, _, files in os.walk(self.RAW_DIR):
-            pass
+    def process(self):
+        file_path = os.path.join(self.input_path, self.input_file_name)
+        print("Processing {}", file_path)
+        self.process_file(file_path, self.input_file_name)
+        self.update_dict()
+
+    def update_dict(self):
+        dict_data = {
+            'style_names': self.style_names,
+            'style_values': self.style_values,
+            'tags': self.tags
+        }
+        with open(self.DICT_DIR, 'w') as dict_file:
+            json.dump(dict_data, dict_file, indent=2)
 
     def process_file(self, file_path, file_name):
         with open(file_path) as data_file:
             json_data = json.load(data_file)
-            node_id, page_data = self.process_data(json_data)
-
+            _, page_data = self.process_data(json_data)
+            with open("{}/{}".format(self.OUTPUT_DIR, file_name), 'w') as outfile:
+                json.dump(page_data, outfile, indent=2)
 
     def process_data(self, json_data, node_id = 0, page_data = {}):
         if json_data['tag'].lower() not in self.tags:
