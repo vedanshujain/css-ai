@@ -12,6 +12,7 @@ class Reader:
     style_values = []
     input_path = ''
     input_file_name = ''
+    last_node_id = 0
 
     def __init__(self, input_path, input_file_name):
         self.load_dict()
@@ -21,6 +22,7 @@ class Reader:
         }
         self.input_path = input_path
         self.input_file_name = input_file_name
+        self.last_node_id = 0
 
     def load_dict(self):
         with open(self.DICT_DIR) as dict_file:
@@ -51,12 +53,14 @@ class Reader:
             with open("{}/{}".format(self.OUTPUT_DIR, file_name), 'w') as outfile:
                 json.dump(page_data, outfile, indent=2)
 
-    def process_data(self, json_data, node_id = 0, page_data = {}):
+    def process_data(self, json_data, page_data = {}):
         if json_data['tag'].lower() not in self.tags:
-            return page_data
+            return None, None
         children = []
+        node_id = self.last_node_id + 1
+        self.last_node_id = node_id
         style_data = {}
-        node_id = node_id + 1
+        print("Processing node id: {}".format(node_id))
         for style_name, style_value in json_data['styles'].items():
             style_index, style_value_index = self.compute_style_index(style_name, style_value)
             style_data[style_index] = style_value_index
@@ -74,8 +78,10 @@ class Reader:
 
         page_data['data'][node_id] = style_data
         for child in json_data['children']:
-            child_node_id, page_data = self.process_data(child, node_id, page_data)
-            children.append(child_node_id)
+            child_node_id, child_page_data = self.process_data(child, page_data)
+            if child_node_id is not None:
+                children.append(child_node_id)
+                page_data = child_page_data
 
         page_data['map'][node_id] = children
         return node_id, page_data
