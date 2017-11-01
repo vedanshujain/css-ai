@@ -1,0 +1,10 @@
+{
+  "tags": ["body", "footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "section", "nav", "blockquote",
+    "div", "hr", "li", "main", "ol", "p", "pre", "ul", "a", "b", "br", "code", "em", "i", "small", "span", "strong",
+    "sub", "sup", "time", "u", "area", "img", "video", "table", "col", "colgroup", "tbody", "td", "tfoot", "th",
+    "thead", "tr", "button", "fieldset", "form", "input", "label", "legend", "meter", "option", "progress", "select",
+    "textarea", "menuitem"
+  ],
+  "style_names": [],
+  "style_values": []
+}
