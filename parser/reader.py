@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 
 
 class Reader:
@@ -14,7 +15,7 @@ class Reader:
     input_file_name = ''
     last_node_id = 0
 
-    def __init__(self, input_path, input_file_name):
+    def __init__(self, input_path='', input_file_name=''):
         self.load_dict()
         self.page_data = {
             'map': {},
@@ -53,7 +54,7 @@ class Reader:
             with open("{}/{}".format(self.OUTPUT_DIR, file_name), 'w') as outfile:
                 json.dump(page_data, outfile, indent=2)
 
-    def process_data(self, json_data, page_data = {}):
+    def process_data(self, json_data, page_data={}):
         if json_data['tag'].lower() not in self.tags:
             return None, None
         children = []
@@ -96,3 +97,65 @@ class Reader:
             self.style_values[style_index].append(style_value)
         style_value_index = self.style_values[style_index].index(style_value)
         return style_index, style_value_index
+
+    def get_next_patch(self, file_path, file_name, count):
+        data = Reader.load_json_file(file_path, file_name)
+        current_count = 0
+        style_data = []
+        for parent in data['map'].keys():
+            for element in data['map'][parent]:
+                patch = self.get_patch(element, parent, data)
+                style_data.append([
+                    data['data'][str(patch['ele'])],
+                    data['data'][str(patch['parent'])],
+                    data['data'][str(patch['left_sib'])] if patch['left_sib'] is not None else None,
+                    data['data'][str(patch['right_sib'])] if patch['right_sib'] is not None else None,
+                    data['data'][str(patch['f_child'])] if patch['f_child'] is not None else None
+                ])
+                current_count += 1
+                if current_count >= count:
+                    yield [style_data, False]
+                    style_data = []
+                    current_count = 0
+        return [style_data, True]
+
+    # noinspection PyMethodMayBeStatic
+    def get_patch(self, element, parent, data):
+        siblings = data['map'][parent]
+        c_index = siblings.index(element)
+        left_sib = siblings[c_index - 1] if c_index > 0 else None
+        right_sib = siblings[c_index + 1] if c_index + 1 < len(siblings) else None
+        f_child = data['map'][str(element)][0] if len(data['map'][str(element)]) > 0 else None
+        return {
+            'ele': element,
+            'parent': parent,
+            'left_sib': left_sib,
+            'right_sib': right_sib,
+            'f_child': f_child
+        }
+
+    # noinspection PyMethodMayBeStatic
+    def inflate_patches(self, patches):
+        inflated_patches = []
+        for patch in patches:
+            inflated_patch = []
+            for element in patch:
+                inflated_element = []
+                if element is None:
+                    inflated_element = np.zeros((89, 50))
+                else:
+                    for style_index in element.keys():
+                        style_value = int(element[style_index])
+                        ele_style = np.zeros(50)
+                        if style_value < 50:
+                            ele_style[style_value] = 1
+                        inflated_element.append(ele_style)
+                inflated_patch.append(inflated_element)
+            inflated_patches.append(inflated_patch)
+        return inflated_patches
+
+    @staticmethod
+    def load_json_file(file_path, file_name):
+        full_file_path = os.path.join(file_path, file_name)
+        with open(full_file_path) as data_file:
+            return json.load(data_file)
