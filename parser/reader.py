@@ -117,21 +117,21 @@ class Reader:
                     yield [style_data, False]
                     style_data = []
                     current_count = 0
-        return [style_data, True]
+        yield [style_data, True]
 
     # noinspection PyMethodMayBeStatic
     def get_patch(self, element, parent, data):
         siblings = data['map'][parent]
-        c_index = siblings.index(element)
+        c_index = siblings.index(int(element))
         left_sib = siblings[c_index - 1] if c_index > 0 else None
         right_sib = siblings[c_index + 1] if c_index + 1 < len(siblings) else None
         f_child = data['map'][str(element)][0] if len(data['map'][str(element)]) > 0 else None
         return {
-            'ele': element,
-            'parent': parent,
-            'left_sib': left_sib,
-            'right_sib': right_sib,
-            'f_child': f_child
+            'ele': str(element) if element is not None else None,
+            'parent': str(parent) if parent is not None else None,
+            'left_sib': str(left_sib) if left_sib is not None else None,
+            'right_sib': str(right_sib) if right_sib is not None else None,
+            'f_child': str(f_child) if f_child is not None else None
         }
 
     # noinspection PyMethodMayBeStatic
