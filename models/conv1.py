@@ -35,7 +35,11 @@ class Conv1:
         if self.cnn_model is None:
             raise Exception("Variable cnn_model is not initialised yet")
 
-        return tf.losses.mean_squared_error(labels=tf.reshape(self.Y, [-1, self.prop_count*self.values_count]), predictions=self.cnn_model)
+        return tf.reduce_sum(
+            tf.nn.softmax_cross_entropy_with_logits(
+                labels=self.Y,
+                logits=tf.reshape(self.cnn_model, (-1, self.prop_count, self.values_count)))
+        )
 
     def train(self):
         self.model()
