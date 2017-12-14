@@ -142,11 +142,11 @@ class Reader:
             for element in patch:
                 inflated_element = []
                 if element is None:
-                    inflated_element = np.zeros((89, 50))
+                    inflated_element = np.zeros((90, 50)).tolist()
                 else:
                     for style_index in element.keys():
                         style_value = int(element[style_index])
-                        ele_style = np.zeros(50)
+                        ele_style = np.zeros(50).tolist()
                         if style_value < 50:
                             ele_style[style_value] = 1
                         inflated_element.append(ele_style)

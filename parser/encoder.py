@@ -6,6 +6,7 @@ class Encoder:
 
     reader = None
     output_dir = None
+    net_count = 0
 
     def __init__(self):
         self.reader = Reader()
