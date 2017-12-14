@@ -26,7 +26,8 @@ if __name__ == '__main__':
         print("Session started")
         patches_generater = encoder.get_next_sample(100)
         print("Running global variables initializer")
-        sess.run(tf.global_variables_initializer())
+        # sess.run(tf.global_variables_initializer())
+        saver.restore(sess, 'checkpoint/conv1')
         for patches in patches_generater:
             print("Processing patches")
             Y = [patch[0] for patch in patches]
