@@ -1,8 +1,7 @@
 from models.conv1 import Conv1 as Model
-from parser.reader import Reader
 from parser.encoder import Encoder
 import tensorflow as tf
-import numpy as np
+
 
 CSS_PROP_COUNT = 90
 CSS_VALUES_COUNT = 50

@@ -6,15 +6,17 @@ import numpy as np
 
 class Conv1:
 
-    def __init__(self, prop_count, values_count, patch_size, training):
+    def __init__(self, prop_count, values_count, patch_size):
         self.prop_count = prop_count
         self.values_count = values_count
         self.X = tf.placeholder(tf.float32, shape=(None, values_count, prop_count, patch_size))
         self.Y = tf.placeholder(tf.float32, shape=(None, prop_count, values_count))
-        self.training = training
         self.cnn_model = None
 
     def model(self):
+
+        if self.cnn_model is not None:
+            return
 
         # Conv 1
         model = tf.layers.conv2d(inputs=self.X, filters=30, padding='same', activation=tf.nn.relu,
@@ -50,5 +52,6 @@ class Conv1:
     def fill_feed_dict(self, X, Y):
         return {self.X: np.swapaxes(X, 1, 3), self.Y: Y}
 
-    def eval(self, x):
-        pass
+    def eval(self):
+        return self.model()
+

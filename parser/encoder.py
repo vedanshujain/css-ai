@@ -22,3 +22,9 @@ class Encoder:
                         inflated_patches = self.reader.inflate_patches(patches)
                         yield inflated_patches
 
+    def encode_eval_generator(self, style_data, count=100):
+        _, processed_data = self.reader.process_data(style_data, read_only=True)
+        style_data = self.reader.get_style_data(processed_data, count)
+        for patches, _ in style_data:
+            inflated_patches = self.reader.inflate_patches(patches)
+            yield inflated_patches

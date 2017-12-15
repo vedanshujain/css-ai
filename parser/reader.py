@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+import collections
 
 
 class Reader:
@@ -54,22 +55,23 @@ class Reader:
             with open("{}/{}".format(self.OUTPUT_DIR, file_name), 'w') as outfile:
                 json.dump(page_data, outfile, indent=2)
 
-    def process_data(self, json_data, page_data={}):
+    def process_data(self, json_data, page_data={}, read_only=False):
         if json_data['tag'].lower() not in self.tags:
             return None, None
         children = []
         node_id = self.last_node_id + 1
         self.last_node_id = node_id
         style_data = {}
-        print("Processing node id: {}".format(node_id))
         for style_name, style_value in json_data['styles'].items():
-            style_index, style_value_index = self.compute_style_index(style_name, style_value)
-            style_data[style_index] = style_value_index
+            style_index, style_value_index = self.compute_style_index(style_name, style_value, read_only)
+            if style_index is not None:
+                style_data[style_index] = style_value_index if style_value_index is not None else 0
 
         for bound_name, bound_value in json_data['bound'].items():
             style_name = "bound_{}".format(bound_name)
-            style_index, style_value_index = self.compute_style_index(style_name, bound_value)
-            style_data[style_index] = style_value_index
+            style_index, style_value_index = self.compute_style_index(style_name, bound_value, read_only)
+            if style_index is not None:
+                style_data[style_index] = style_value_index if style_value_index is not None else 0
 
         if "map" not in page_data.keys():
             page_data['map'] = {}
@@ -79,7 +81,7 @@ class Reader:
 
         page_data['data'][node_id] = style_data
         for child in json_data['children']:
-            child_node_id, child_page_data = self.process_data(child, page_data)
+            child_node_id, child_page_data = self.process_data(child, page_data, read_only=read_only)
             if child_node_id is not None:
                 children.append(child_node_id)
                 page_data = child_page_data
@@ -87,30 +89,47 @@ class Reader:
         page_data['map'][node_id] = children
         return node_id, page_data
 
-    def compute_style_index(self, style_name, style_value):
+    def compute_style_index(self, style_name, style_value, read_only):
         if style_name not in self.style_names:
+            if read_only:
+                return None, None
             self.style_names.append(style_name)
             self.style_values.append([])
         style_index = self.style_names.index(style_name)
 
         if style_value not in self.style_values[style_index]:
+            if read_only:
+                return style_index, None
             self.style_values[style_index].append(style_value)
         style_value_index = self.style_values[style_index].index(style_value)
         return style_index, style_value_index
 
     def get_next_patch(self, file_path, file_name, count):
         data = Reader.load_json_file(file_path, file_name)
+        return self.get_style_data(data, count)
+
+    def sanitize_data(self, data):
+        if isinstance(data, str):
+            return int(data) if data != 'data' and data != 'map' else data
+        if isinstance(data, collections.Mapping):
+            return dict(map(self.sanitize_data, data.items()))
+        if isinstance(data, collections.Iterable):
+            return list(map(self.sanitize_data, data))
+        return data
+
+    def get_style_data(self, data, count):
         current_count = 0
         style_data = []
-        for parent in data['map'].keys():
+        data = self.sanitize_data(data)
+        for parent in data['map']:
             for element in data['map'][parent]:
                 patch = self.get_patch(element, parent, data)
                 style_data.append([
-                    data['data'][str(patch['ele'])],
-                    data['data'][str(patch['parent'])],
-                    data['data'][str(patch['left_sib'])] if patch['left_sib'] is not None else None,
-                    data['data'][str(patch['right_sib'])] if patch['right_sib'] is not None else None,
-                    data['data'][str(patch['f_child'])] if patch['f_child'] is not None else None
+                    data['data'][patch['ele']],
+                    data['data'][patch['parent']],
+                    data['data'][patch['left_sib']] if patch['left_sib'] is not None else None,
+                    data['data'][patch['right_sib']] if patch['right_sib'] is not None else None,
+                    data['data'][patch['f_child']] if patch['f_child'] is not None else None
                 ])
                 current_count += 1
                 if current_count >= count:
@@ -119,19 +138,20 @@ class Reader:
                     current_count = 0
         yield [style_data, True]
 
+
     # noinspection PyMethodMayBeStatic
     def get_patch(self, element, parent, data):
         siblings = data['map'][parent]
-        c_index = siblings.index(int(element))
+        c_index = siblings.index(element)
         left_sib = siblings[c_index - 1] if c_index > 0 else None
         right_sib = siblings[c_index + 1] if c_index + 1 < len(siblings) else None
-        f_child = data['map'][str(element)][0] if len(data['map'][str(element)]) > 0 else None
+        f_child = data['map'][element][0] if len(data['map'][element]) > 0 else None
         return {
-            'ele': str(element) if element is not None else None,
-            'parent': str(parent) if parent is not None else None,
-            'left_sib': str(left_sib) if left_sib is not None else None,
-            'right_sib': str(right_sib) if right_sib is not None else None,
-            'f_child': str(f_child) if f_child is not None else None
+            'ele': element,
+            'parent': parent,
+            'left_sib': left_sib,
+            'right_sib': right_sib,
+            'f_child': f_child
         }
 
     # noinspection PyMethodMayBeStatic
