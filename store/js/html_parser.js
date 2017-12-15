@@ -13,14 +13,15 @@ function getStyle(runId, path) {
       let childIndex = path[i];
       ele = ele.children[childIndex];
   }
-  const className = runId + "-" + path.join('-');
+  window.elementId += 1;
+  const className = runId + "-" + window.elementId;
   ele.classList.add(className);
   const styles = window.getComputedStyle(ele);
   const eleStyles = {};
   for(let i = 0; i < styles.length; i++) {
       eleStyles[styles[i]] = styles.getPropertyValue(styles[i]);
   }
-  return {style: eleStyles, tagName: ele.tagName, bounds: ele.getBoundingClientRect()};
+  return {id: window.elementId, style: eleStyles, tagName: ele.tagName, bounds: ele.getBoundingClientRect()};
 }
 
 function buildTree(runId, path = [], data = {}) {
@@ -35,6 +36,7 @@ function buildTree(runId, path = [], data = {}) {
   data['styles'] = filteredStyle;
   data['bound'] = styleData['bounds'];
   data['children'] = [];
+  data['id'] = styleData['id']
   const childrenCount = childLength(path);
   for(let i = 0; i < childrenCount; i ++) {
     const childStyle = buildTree(runId, path.concat(i));
@@ -43,6 +45,7 @@ function buildTree(runId, path = [], data = {}) {
   return data;
 }
 
+window.elementId = 0
 window.getStyle = getStyle;
 window.childLength = childLength;
 window.buildTree = buildTree;

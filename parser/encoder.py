@@ -28,3 +28,10 @@ class Encoder:
         for patches, _ in style_data:
             inflated_patches = self.reader.inflate_patches(patches)
             yield inflated_patches
+
+    def deflate(self, changed_elements):
+        deflated_styles = {}
+        for element_id, styles in changed_elements.items():
+            deflated_styles[element_id] = [self.reader.get_style_value(style_index, list(style_row).index(1))
+                                           for style_index, style_row in styles.items() if 1 in style_row]
+        return deflated_styles

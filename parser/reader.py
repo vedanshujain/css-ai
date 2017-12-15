@@ -14,7 +14,6 @@ class Reader:
     style_values = []
     input_path = ''
     input_file_name = ''
-    last_node_id = 0
 
     def __init__(self, input_path='', input_file_name=''):
         self.load_dict()
@@ -24,7 +23,6 @@ class Reader:
         }
         self.input_path = input_path
         self.input_file_name = input_file_name
-        self.last_node_id = 0
 
     def load_dict(self):
         with open(self.DICT_DIR) as dict_file:
@@ -59,8 +57,7 @@ class Reader:
         if json_data['tag'].lower() not in self.tags:
             return None, None
         children = []
-        node_id = self.last_node_id + 1
-        self.last_node_id = node_id
+        node_id = json_data['id']
         style_data = {}
         for style_name, style_value in json_data['styles'].items():
             style_index, style_value_index = self.compute_style_index(style_name, style_value, read_only)
@@ -104,6 +101,11 @@ class Reader:
         style_value_index = self.style_values[style_index].index(style_value)
         return style_index, style_value_index
 
+    def get_style_value(self, style_index, style_value_index):
+        if style_value_index >= len(self.style_values[style_index]) :
+            return [None, None]
+        return [self.style_names[style_index], self.style_values[style_index][style_value_index]]
+
     def get_next_patch(self, file_path, file_name, count):
         data = Reader.load_json_file(file_path, file_name)
         return self.get_style_data(data, count)
@@ -125,6 +127,7 @@ class Reader:
             for element in data['map'][parent]:
                 patch = self.get_patch(element, parent, data)
                 style_data.append([
+                    element,
                     data['data'][patch['ele']],
                     data['data'][patch['parent']],
                     data['data'][patch['left_sib']] if patch['left_sib'] is not None else None,
@@ -156,10 +159,11 @@ class Reader:
 
     # noinspection PyMethodMayBeStatic
     def inflate_patches(self, patches):
-        inflated_patches = []
+        inflated_patches = {}
         for patch in patches:
             inflated_patch = []
-            for element in patch:
+            element_id = patch[0]
+            for element in patch[1:]:
                 inflated_element = []
                 if element is None:
                     inflated_element = np.zeros((90, 50)).tolist()
@@ -171,7 +175,9 @@ class Reader:
                             ele_style[style_value] = 1
                         inflated_element.append(ele_style)
                 inflated_patch.append(inflated_element)
-            inflated_patches.append(inflated_patch)
+            if element_id in inflated_patches.keys():
+                raise Exception("Duplicate node id")
+            inflated_patches[element_id] = inflated_patch
         return inflated_patches
 
     @staticmethod
