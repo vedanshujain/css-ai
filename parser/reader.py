@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 import collections
-
+from .dictionary import Dictionary
 
 class Reader:
 
@@ -16,13 +16,20 @@ class Reader:
     input_file_name = ''
 
     def __init__(self, input_path='', input_file_name=''):
-        self.load_dict()
+        # self.load_dict()
         self.page_data = {
             'map': {},
             'data': {}
         }
         self.input_path = input_path
         self.input_file_name = input_file_name
+
+        # used just in training
+        self.node_id = 0
+
+    def get_next_node_id(self):
+        self.node_id += 1
+        return self.node_id
 
     def load_dict(self):
         with open(self.DICT_DIR) as dict_file:
@@ -54,21 +61,23 @@ class Reader:
                 json.dump(page_data, outfile, indent=2)
 
     def process_data(self, json_data, page_data={}, read_only=False):
-        if json_data['tag'].lower() not in self.tags:
+        if json_data['tag'].lower() in Dictionary.IGNORE_TAGS:
             return None, None
+        if json_data['tag'].lower() not in self.tags:
+            self.tags.append(json_data['tag'].lower())
         children = []
-        node_id = json_data['id']
+        node_id = json_data.get('id', self.get_next_node_id())
         style_data = {}
         for style_name, style_value in json_data['styles'].items():
             style_index, style_value_index = self.compute_style_index(style_name, style_value, read_only)
             if style_index is not None:
                 style_data[style_index] = style_value_index if style_value_index is not None else 0
 
-        for bound_name, bound_value in json_data['bound'].items():
-            style_name = "bound_{}".format(bound_name)
-            style_index, style_value_index = self.compute_style_index(style_name, bound_value, read_only)
-            if style_index is not None:
-                style_data[style_index] = style_value_index if style_value_index is not None else 0
+        # for bound_name, bound_value in json_data['bound'].items():
+        #     style_name = "bound_{}".format(bound_name)
+        #     style_index, style_value_index = self.compute_style_index(style_name, bound_value, read_only)
+        #     if style_index is not None:
+        #         style_data[style_index] = style_value_index if style_value_index is not None else 0
 
         if "map" not in page_data.keys():
             page_data['map'] = {}
@@ -126,6 +135,8 @@ class Reader:
         for parent in data['map']:
             for element in data['map'][parent]:
                 patch = self.get_patch(element, parent, data)
+                if len(data['data'][patch['parent']]) != 82:
+                    print('here')
                 style_data.append([
                     element,
                     data['data'][patch['ele']],
@@ -166,12 +177,12 @@ class Reader:
             for element in patch[1:]:
                 inflated_element = []
                 if element is None:
-                    inflated_element = np.zeros((90, 50)).tolist()
+                    inflated_element = np.zeros((Dictionary.CSS_PROP_COUNT, Dictionary.CSS_VALUES_COUNT)).tolist()
                 else:
                     for style_index in element.keys():
                         style_value = int(element[style_index])
-                        ele_style = np.zeros(50).tolist()
-                        if style_value < 50:
+                        ele_style = np.zeros(Dictionary.CSS_VALUES_COUNT).tolist()
+                        if style_value < Dictionary.CSS_VALUES_COUNT:
                             ele_style[style_value] = 1
                         inflated_element.append(ele_style)
                 inflated_patch.append(inflated_element)

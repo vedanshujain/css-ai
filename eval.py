@@ -11,6 +11,7 @@ driver = webdriver.Chrome('store/chromedriver')
 model = Model(Dictionary.CSS_PROP_COUNT, Dictionary.CSS_VALUES_COUNT, Dictionary.PATCH_SIZE)
 
 eval_op = model.eval()
+train_op = model.train()
 
 sess = tf.Session()
 
@@ -47,6 +48,12 @@ def eval(iterations):
                 Y.append(patch[0])
                 X.append(patch[1:])
                 ele_ids.append(element_id)
+        # do a minor train op with 20 iterations?
+        print("starting minor train")
+        for i in range(5):
+            sess.run(train_op, feed_dict=model.fill_feed_dict(X, Y))
+            print("Done {}".format(i))
+        print('Ended minor train')
         y_pred = sess.run(eval_op, feed_dict=model.fill_feed_dict(X, Y))
         y_pred_matrix = np.reshape(y_pred, (-1, Dictionary.CSS_PROP_COUNT, Dictionary.CSS_VALUES_COUNT))
         print("Applying changes")
