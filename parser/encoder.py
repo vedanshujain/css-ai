@@ -1,5 +1,6 @@
 from .reader import Reader
 import os
+import random
 
 
 class Encoder:
@@ -14,7 +15,9 @@ class Encoder:
 
     def get_next_sample(self, try_count=10):
         for folder, _, files in os.walk(self.reader.OUTPUT_DIR):
+            random.shuffle(files)
             for file in files:
+                print("Processing file: {}", file)
                 file_parsed = False
                 while not file_parsed:
                     for results in self.reader.get_next_patch(folder, file, try_count):

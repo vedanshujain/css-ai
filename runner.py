@@ -2,6 +2,8 @@ from models.conv1 import Conv1 as Model
 from parser.encoder import Encoder
 import tensorflow as tf
 from parser.dictionary import Dictionary
+import time
+import os
 import numpy as np
 
 
@@ -23,12 +25,14 @@ if __name__ == '__main__':
     count = 0
     print("Starting session")
     with tf.Session() as sess:
-        writer = tf.summary.FileWriter('train', sess.graph)
+        dir_path = "train/{}".format(int(time.time()))
+        os.mkdir(dir_path)
+        writer = tf.summary.FileWriter(dir_path, sess.graph)
         print("Session started")
         patches_generater = encoder.get_next_sample(100)
         print("Running global variables initializer")
-        sess.run(tf.global_variables_initializer())
-        # saver.restore(sess, 'checkpoint/conv1')
+        # sess.run(tf.global_variables_initializer())
+        saver.restore(sess, 'checkpoint/conv1')
         for patches in patches_generater:
             print("Processing patches")
             Y = [patch[0] for _, patch in patches.items()]

@@ -19,10 +19,21 @@ class Conv1:
             return
 
         # Conv 1
-        model = tf.layers.conv2d(inputs=self.X, filters=30, padding='same', activation=tf.nn.relu,
+        model = tf.layers.conv2d(inputs=self.X, filters=100, padding='same', activation=tf.nn.relu,
                                  kernel_size=5, name='conv1')
         # pool 1
         model = tf.layers.max_pooling2d(inputs=model, pool_size=2, strides=2, name='max1')
+
+        # Conv 2
+        model = tf.layers.conv2d(inputs=model, strides=[3, 3], filters=200, padding='same', activation=tf.nn.relu,
+                                 kernel_size=1, name='conv2')
+
+        # Conv 3
+        model = tf.layers.conv2d(inputs=model, strides=[5, 5], filters=100, padding='same', activation=tf.nn.relu,
+                                 kernel_size=25, name='conv3')
+
+        # pool 2
+        model = tf.layers.average_pooling2d(inputs=model, pool_size=2, strides=1, name='max2')
 
         model = tf.layers.flatten(model)
 
