@@ -25,7 +25,7 @@ class Conv1:
         model = tf.layers.max_pooling2d(inputs=model, pool_size=2, strides=2, name='max1')
 
         # Conv 2
-        model = tf.layers.conv2d(inputs=model, strides=[3, 3], filters=200, padding='same', activation=tf.nn.relu,
+        model = tf.layers.conv2d(inputs=model, strides=[3, 3], filters=200, padding='valid', activation=tf.nn.relu,
                                  kernel_size=1, name='conv2')
 
         # Conv 3
@@ -38,7 +38,8 @@ class Conv1:
         model = tf.layers.flatten(model)
 
         # dense
-        model = tf.layers.dense(inputs=model, units=self.prop_count*self.values_count, activation=tf.nn.relu, name='fc1')
+        model = tf.layers.dense(inputs=model, units=self.prop_count*self.values_count*2, activation=tf.nn.relu, name='fc1')
+        model = tf.layers.dense(inputs=model, units=self.prop_count*self.values_count, activation=tf.nn.relu, name='fc2')
 
         self.cnn_model = model
 
@@ -52,12 +53,12 @@ class Conv1:
             tf.nn.softmax_cross_entropy_with_logits(
                 labels=self.Y,
                 logits=tf.reshape(self.cnn_model, (-1, self.prop_count, self.values_count)))
-        )
+        ) / (self.prop_count * self.values_count)
 
     def train(self):
         self.model()
         loss = self.loss()
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.1)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
         return optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
 
     def fill_feed_dict(self, X, Y):

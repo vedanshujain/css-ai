@@ -29,10 +29,10 @@ if __name__ == '__main__':
         os.mkdir(dir_path)
         writer = tf.summary.FileWriter(dir_path, sess.graph)
         print("Session started")
-        patches_generater = encoder.get_next_sample(100)
+        patches_generater = encoder.get_next_sample(500)
         print("Running global variables initializer")
-        # sess.run(tf.global_variables_initializer())
-        saver.restore(sess, 'checkpoint/conv1')
+        sess.run(tf.global_variables_initializer())
+        # saver.restore(sess, 'checkpoint/conv1')
         for patches in patches_generater:
             print("Processing patches")
             Y = [patch[0] for _, patch in patches.items()]

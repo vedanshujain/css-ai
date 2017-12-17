@@ -43,21 +43,32 @@ def eval(iterations):
         ele_ids = []
         X = []
         Y = []
+        chunk_size = 100
         for patches in encoded_data:
             for element_id, patch in patches.items():
                 Y.append(patch[0])
                 X.append(patch[1:])
                 ele_ids.append(element_id)
-        # do a minor train op with 20 iterations?
+        X_patches = chunker(X, chunk_size)
+        Y_patches = chunker(Y, chunk_size)
+        ele_ids = chunker(ele_ids, chunk_size)
+        print("Chunks: {}", len(X_patches))
         print("starting minor train")
-        for i in range(5):
-            sess.run(train_op, feed_dict=model.fill_feed_dict(X, Y))
-            print("Done {}".format(i))
+        for index in range(len(X_patches)):
+            X_patch = X_patches[index]
+            Y_patch = Y_patches[index]
+            for i in range(2):
+                sess.run(train_op, feed_dict=model.fill_feed_dict(X_patch, Y_patch))
+                print("Done {} {}".format(index, i))
         print('Ended minor train')
-        y_pred = sess.run(eval_op, feed_dict=model.fill_feed_dict(X, Y))
-        y_pred_matrix = np.reshape(y_pred, (-1, Dictionary.CSS_PROP_COUNT, Dictionary.CSS_VALUES_COUNT))
-        print("Applying changes")
-        apply_pred(y_pred_matrix, Y, ele_ids, run_id, driver)
+        for index in range(len(X_patches)):
+            X_patch = X_patches[index]
+            Y_patch = Y_patches[index]
+            ele_batch = ele_ids[index]
+            y_pred = sess.run(eval_op, feed_dict=model.fill_feed_dict(X_patch, Y_patch))
+            y_pred_matrix = np.reshape(y_pred, (-1, Dictionary.CSS_PROP_COUNT, Dictionary.CSS_VALUES_COUNT))
+            print("Applying changes")
+            apply_pred(y_pred_matrix, Y_patch, ele_batch, run_id, driver)
         return
 
 
@@ -66,6 +77,9 @@ def apply_pred(y_pred_matrix, orig_matrix, elements, run_id, driver):
     changed_styles = encoder.deflate(changed_elements)
     style_text = get_style_text(changed_styles, run_id)
     driver.execute_script("window.applyStyles(`{}`)".format(style_text))
+
+def chunker(seq, size):
+    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
 
 def get_style_text(styles, run_id):
