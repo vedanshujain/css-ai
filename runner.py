@@ -17,6 +17,8 @@ if __name__ == '__main__':
     global_step_tensor = tf.Variable(10, trainable=False, name='global_step')
 
     tf.summary.scalar('entropy loss', loss)
+    tf.summary.histogram('histogram', model.cnn_model)
+
     summary = tf.summary.merge_all()
 
     saver = tf.train.Saver()

@@ -31,7 +31,7 @@ def eval(iterations):
     run_id = random.getrandbits(16)
     print("Starting run with ID: {}".format(run_id))
     print("Fetching DOM of currently opened page")
-    driver.get('https://news.ycombinator.com/')
+    driver.get("https://news.ycombinator.com")
     driver.execute_script(css_props_script)
     driver.execute_script(html_parse_script)
     driver.execute_script(apply_style_script)
@@ -52,15 +52,15 @@ def eval(iterations):
         X_patches = chunker(X, chunk_size)
         Y_patches = chunker(Y, chunk_size)
         ele_ids = chunker(ele_ids, chunk_size)
-        print("Chunks: {}", len(X_patches))
-        print("starting minor train")
-        for index in range(len(X_patches)):
-            X_patch = X_patches[index]
-            Y_patch = Y_patches[index]
-            for i in range(2):
-                sess.run(train_op, feed_dict=model.fill_feed_dict(X_patch, Y_patch))
-                print("Done {} {}".format(index, i))
-        print('Ended minor train')
+        print("Chunks: ", len(X_patches))
+        # print("starting minor train")
+        # for index in range(len(X_patches)):
+        #     X_patch = X_patches[index]
+        #     Y_patch = Y_patches[index]
+        #     for i in range(2):
+        #         sess.run(train_op, feed_dict=model.fill_feed_dict(X_patch, Y_patch))
+        #         print("Done {} {}".format(index, i))
+        # print('Ended minor train')
         for index in range(len(X_patches)):
             X_patch = X_patches[index]
             Y_patch = Y_patches[index]

@@ -58,7 +58,7 @@ class Conv1:
     def train(self):
         self.model()
         loss = self.loss()
-        optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+        optimizer = tf.train.AdamOptimizer(learning_rate=0.1)
         return optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
 
     def fill_feed_dict(self, X, Y):
