@@ -19,27 +19,37 @@ class Conv1:
             return
 
         # Conv 1
-        model = tf.layers.conv2d(inputs=self.X, filters=100, padding='same', activation=tf.nn.relu,
-                                 kernel_size=5, name='conv1')
+        model = tf.layers.conv2d(inputs=self.X, filters=200, padding='same', activation=tf.nn.relu,
+                                 kernel_size=3, name='conv1')
+
+        # Conv 2
+        model = tf.layers.conv2d(inputs=model, strides=[3, 3], filters=100, padding='same', activation=tf.nn.relu,
+                                 kernel_size=3, name='conv2')
+
+        # Conv 3
+        # model = tf.layers.conv2d(inputs=model, strides=[3, 3], filters=300, padding='same', activation=tf.nn.relu,
+        #                          kernel_size=3, name='conv3')
+
         # pool 1
         model = tf.layers.max_pooling2d(inputs=model, pool_size=2, strides=2, name='max1')
 
-        # Conv 2
-        model = tf.layers.conv2d(inputs=model, strides=[3, 3], filters=200, padding='valid', activation=tf.nn.relu,
-                                 kernel_size=1, name='conv2')
-
-        # Conv 3
-        model = tf.layers.conv2d(inputs=model, strides=[5, 5], filters=100, padding='same', activation=tf.nn.relu,
-                                 kernel_size=25, name='conv3')
+        # Conv 4
+        model = tf.layers.conv2d(inputs=model, strides=[2, 2], filters=100, padding='same', activation=tf.nn.relu,
+                                 kernel_size=2, name='conv4')
 
         # pool 2
-        model = tf.layers.average_pooling2d(inputs=model, pool_size=2, strides=1, name='max2')
+        model = tf.layers.max_pooling2d(inputs=model, pool_size=2, strides=1, name='max2')
 
         model = tf.layers.flatten(model)
 
         # dense
-        model = tf.layers.dense(inputs=model, units=self.prop_count*self.values_count*2, activation=tf.nn.relu, name='fc1')
+        # model = tf.layers.dense(inputs=model, units=self.prop_count*self.values_count, activation=tf.nn.relu, name='fc1')
         model = tf.layers.dense(inputs=model, units=self.prop_count*self.values_count, activation=tf.nn.relu, name='fc2')
+
+        model = tf.reshape(model, (-1, self.prop_count, self.values_count))
+
+        # normalizing probabilities
+        model = tf.nn.softmax(model)
 
         self.cnn_model = model
 
@@ -49,11 +59,11 @@ class Conv1:
         if self.cnn_model is None:
             raise Exception("Variable cnn_model is not initialised yet")
 
+        input_count = tf.cast(tf.shape(self.X)[0], tf.float32)
+
         return tf.reduce_sum(
-            tf.nn.softmax_cross_entropy_with_logits(
-                labels=self.Y,
-                logits=tf.reshape(self.cnn_model, (-1, self.prop_count, self.values_count)))
-        ) / (self.prop_count * self.values_count)
+           tf.square(tf.subtract(self.Y, self.cnn_model))
+        ) / (input_count * 2)
 
     def train(self):
         self.model()

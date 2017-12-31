@@ -68,6 +68,8 @@ class Reader:
         children = []
         node_id = json_data.get('id', self.get_next_node_id())
         style_data = {}
+        tag_index, tag_value_index = self.compute_style_index('tag', json_data['tag'], read_only)
+        style_data[tag_index] = tag_value_index if tag_value_index is not None else 0
         for style_name, style_value in json_data['styles'].items():
             style_index, style_value_index = self.compute_style_index(style_name, style_value, read_only)
             if style_index is not None:
@@ -96,6 +98,8 @@ class Reader:
         return node_id, page_data
 
     def compute_style_index(self, style_name, style_value, read_only):
+        if style_name in Dictionary.IGNORE_STYLES:
+            return None, None
         if style_name not in self.style_names:
             if read_only:
                 return None, None
@@ -135,8 +139,6 @@ class Reader:
         for parent in data['map']:
             for element in data['map'][parent]:
                 patch = self.get_patch(element, parent, data)
-                if len(data['data'][patch['parent']]) != 82:
-                    print('here')
                 style_data.append([
                     element,
                     data['data'][patch['ele']],
