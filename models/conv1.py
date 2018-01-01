@@ -20,7 +20,7 @@ class Conv1:
             return
 
         # Conv 1
-        conv1 = tf.layers.conv2d(inputs=self.X, filters=1024, padding='valid', activation=tf.nn.relu,
+        conv1 = tf.layers.conv2d(inputs=self.X, filters=1024, padding='valid', activation=tf.nn.tanh,
                                  kernel_size=(1, 150), name='conv1')
 
         tf.summary.histogram('layer-conv1', conv1)
@@ -32,7 +32,7 @@ class Conv1:
         tf.summary.histogram('layer-conv2', conv2)
 
         # Conv 3
-        conv3 = tf.layers.conv2d(inputs=conv2, filters=2048, padding='same', activation=tf.nn.relu,
+        conv3 = tf.layers.conv2d(inputs=conv2, filters=256, padding='same', activation=tf.nn.tanh,
                                  kernel_size=(1, 33), name='conv3')
 
         tf.summary.histogram('layer-conv4', conv3)
@@ -44,13 +44,8 @@ class Conv1:
 
         # Conv 4
         # merge all css props
-        conv4 = tf.layers.conv2d(inputs=conv3,
-                                 strides=1,
-                                 filters=512,
-                                 padding='same',
-                                 activation=tf.nn.relu,
-                                 kernel_size=(1, 2048),  # lol
-                                 name='conv4')
+        conv4 = tf.layers.conv2d(inputs=conv3, strides=1, filters=128, padding='same', activation=tf.nn.relu,
+                                 kernel_size=(1, 15), name='conv4')
 
         tf.summary.histogram('layer-conv4', conv4)
 
@@ -60,7 +55,7 @@ class Conv1:
         model = tf.layers.flatten(conv4)
 
         # dense
-        fc1 = tf.layers.dense(inputs=model, units=self.values_count * self.prop_count, activation=tf.nn.relu, name='fc1')
+        fc1 = tf.layers.dense(inputs=model, units=self.values_count * self.prop_count, activation=tf.nn.tanh, name='fc1')
         tf.summary.histogram('layer-fc1', fc1)
         fc2 = tf.layers.dense(inputs=fc1, units=self.values_count, activation=tf.nn.relu, name='fc2')
         tf.summary.histogram('layer-fc2', fc2)
@@ -98,7 +93,7 @@ class Conv1:
     def train(self):
         self.model()
         loss = self.loss()
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=1)
+        optimizer = tf.train.RMSPropOptimizer(learning_rate=0.01)
         return optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
 
     def fill_feed_dict(self, X, Y):
