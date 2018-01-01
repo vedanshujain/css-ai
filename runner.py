@@ -35,7 +35,7 @@ if __name__ == '__main__':
     count = 0
     print("Starting session")
     with tf.Session() as sess:
-        loss_summary_path = "train/{}".format('7-learning-rate-0.1')
+        loss_summary_path = "train/{}".format('8-learning-rate-1')
         os.mkdir(loss_summary_path)
         writer = tf.summary.FileWriter(loss_summary_path, sess.graph)
         print("Session started")
