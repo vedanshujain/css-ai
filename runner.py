@@ -35,11 +35,11 @@ if __name__ == '__main__':
     count = 0
     print("Starting session")
     with tf.Session() as sess:
-        loss_summary_path = "train/{}".format('all-tanh')
+        loss_summary_path = "train/{}".format('large-minibatch-all-tanh')
         os.mkdir(loss_summary_path)
         writer = tf.summary.FileWriter(loss_summary_path, sess.graph)
         print("Session started")
-        patches_generator = encoder.get_next_sample(500, balance_index=0)
+        patches_generator = encoder.get_next_sample(1000, balance_index=0)
         print("Running global variables initializer")
         sess.run(tf.global_variables_initializer())
         # saver.restore(sess, 'checkpoint/conv1')
