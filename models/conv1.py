@@ -1,3 +1,5 @@
+from numpy.random.mtrand import beta
+
 from parser.encoder import Encoder
 from parser.reader import Reader
 import tensorflow as tf
@@ -55,9 +57,9 @@ class Conv1:
         model = tf.layers.flatten(conv4)
 
         # dense
-        fc1 = tf.layers.dense(inputs=model, units=self.values_count * self.prop_count, activation=tf.nn.tanh, name='fc1')
+        fc1 = tf.layers.dense(inputs=model, units=self.values_count * self.prop_count, activation=tf.nn.relu, name='fc1')
         tf.summary.histogram('layer-fc1', fc1)
-        fc2 = tf.layers.dense(inputs=fc1, units=self.values_count, activation=tf.nn.tanh, name='fc2')
+        fc2 = tf.layers.dense(inputs=fc1, units=self.values_count, activation=tf.nn.relu, name='fc2')
         tf.summary.histogram('layer-fc2', fc2)
 
         # normalizing probabilities
@@ -77,10 +79,11 @@ class Conv1:
             y_style = tf.gather(self.Y, axis=1, indices=self.style_index)
             pred_style = self.cnn_model
             loss_op = tf.nn.softmax_cross_entropy_with_logits(labels=y_style, logits=pred_style)
+            tf.summary.histogram('loss op', loss_op)
             argmax_y_op = tf.argmax(y_style, axis=-1)
             argmax_pred_op = tf.argmax(pred_style, axis=-1)
-            tf.summary.histogram('y_style', argmax_y_op)
-            tf.summary.histogram('pred_style', argmax_pred_op)
+            tf.summary.histogram('y_style', y_style)
+            tf.summary.histogram('pred_style', pred_style)
             return tf.reduce_sum(tf.Print(loss_op,
                                  [tf.not_equal(argmax_pred_op, argmax_y_op),
                                   argmax_y_op, argmax_pred_op,
@@ -93,7 +96,7 @@ class Conv1:
     def train(self):
         self.model()
         loss = self.loss()
-        optimizer = tf.train.RMSPropOptimizer(learning_rate=1)
+        optimizer = tf.train.AdamOptimizer()
         return optimizer.minimize(loss=loss, global_step=tf.train.get_global_step())
 
     def fill_feed_dict(self, X, Y):
