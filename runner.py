@@ -35,7 +35,7 @@ if __name__ == '__main__':
     count = 0
     print("Starting session")
     with tf.Session() as sess:
-        loss_summary_path = "train/{}".format('exp1')
+        loss_summary_path = "train/{}".format('tanh-sigm')
         os.mkdir(loss_summary_path)
         writer = tf.summary.FileWriter(loss_summary_path, sess.graph)
         print("Session started")
@@ -53,7 +53,7 @@ if __name__ == '__main__':
                 print('here')
             i += len(patches)
             count += 1
-            if count % 25 == 0:
+            if count % 100 == 0:
                 print('Checkpointing')
                 saver.save(sess, 'checkpoint/conv1')
                 print('Checkpointed')
