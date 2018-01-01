@@ -26,7 +26,7 @@ class Conv1:
         tf.summary.histogram('layer-conv1', conv1)
 
         # Conv 2
-        conv2 = tf.layers.conv2d(inputs=conv1, strides=1, filters=512, padding='same', activation=tf.nn.sigmoid,
+        conv2 = tf.layers.conv2d(inputs=conv1, strides=1, filters=512, padding='same', activation=tf.nn.tanh,
                                  kernel_size=(1, 75), name='conv2')
 
         tf.summary.histogram('layer-conv2', conv2)
@@ -44,7 +44,7 @@ class Conv1:
 
         # Conv 4
         # merge all css props
-        conv4 = tf.layers.conv2d(inputs=conv3, strides=1, filters=128, padding='same', activation=tf.nn.sigmoid,
+        conv4 = tf.layers.conv2d(inputs=conv3, strides=1, filters=128, padding='same', activation=tf.nn.tanh,
                                  kernel_size=(1, 15), name='conv4')
 
         tf.summary.histogram('layer-conv4', conv4)
@@ -57,7 +57,7 @@ class Conv1:
         # dense
         fc1 = tf.layers.dense(inputs=model, units=self.values_count * self.prop_count, activation=tf.nn.tanh, name='fc1')
         tf.summary.histogram('layer-fc1', fc1)
-        fc2 = tf.layers.dense(inputs=fc1, units=self.values_count, activation=tf.nn.sigmoid, name='fc2')
+        fc2 = tf.layers.dense(inputs=fc1, units=self.values_count, activation=tf.nn.tanh, name='fc2')
         tf.summary.histogram('layer-fc2', fc2)
 
         # normalizing probabilities
