@@ -23,30 +23,30 @@ class Conv1:
 
         # Conv 1
         conv1 = tf.layers.conv2d(inputs=self.X, filters=1024, padding='valid', activation=tf.nn.tanh,
-                                 kernel_size=(1, 150), name='conv1')
+                                 kernel_size=(2, 150), name='conv1')
 
         tf.summary.histogram('layer-conv1', conv1)
 
         # Conv 2
         conv2 = tf.layers.conv2d(inputs=conv1, strides=1, filters=512, padding='same', activation=tf.nn.tanh,
-                                 kernel_size=(1, 75), name='conv2')
+                                 kernel_size=(2, 75), name='conv2')
 
         tf.summary.histogram('layer-conv2', conv2)
 
         # Conv 3
         conv3 = tf.layers.conv2d(inputs=conv2, filters=256, padding='same', activation=tf.nn.tanh,
-                                 kernel_size=(1, 33), name='conv3')
+                                 kernel_size=(2, 33), name='conv3')
 
         tf.summary.histogram('layer-conv4', conv3)
 
         # pool 1
-        # pool1 = tf.layers.max_pooling2d(inputs=conv3, pool_size=1, strides=(1, 2), name='max1', padding='same')
+        pool1 = tf.layers.max_pooling2d(inputs=conv3, pool_size=2, strides=(1, 2), name='max1', padding='same')
 
-        # tf.summary.histogram('layer-pool1', pool1)
+        tf.summary.histogram('layer-pool1', pool1)
 
         # Conv 4
         # merge all css props
-        conv4 = tf.layers.conv2d(inputs=conv3, strides=1, filters=128, padding='same', activation=tf.nn.tanh,
+        conv4 = tf.layers.conv2d(inputs=pool1, strides=1, filters=128, padding='same', activation=tf.nn.tanh,
                                  kernel_size=(1, 15), name='conv4')
 
         tf.summary.histogram('layer-conv4', conv4)
